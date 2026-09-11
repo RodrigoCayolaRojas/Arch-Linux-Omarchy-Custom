@@ -50,10 +50,10 @@ Name=Basecamp
 Exec=omarchy-launch-webapp https://example.com
 DESKTOP
 
-cat >"$tmp_dir/data/applications/Docker.desktop" <<'DESKTOP'
+cat >"$tmp_dir/data/applications/Htop.desktop" <<'DESKTOP'
 [Desktop Entry]
-Name=Docker
-Exec=xdg-terminal-exec --app-id=TUI.tile -e lazydocker
+Name=Htop
+Exec=xdg-terminal-exec --app-id=TUI.tile -e htop
 DESKTOP
 
 cat >"$tmp_dir/system/applications/native.desktop" <<'DESKTOP'
@@ -74,7 +74,7 @@ export XDG_DATA_HOME="$tmp_dir/data"
 export XDG_DATA_DIRS="$tmp_dir/system"
 
 "$ROOT/bin/omarchy-remove-launcher-entry" Basecamp.desktop Basecamp
-"$ROOT/bin/omarchy-remove-launcher-entry" Docker.desktop Docker
+"$ROOT/bin/omarchy-remove-launcher-entry" Htop.desktop Htop
 "$ROOT/bin/omarchy-remove-launcher-entry" native.desktop Native
 "$ROOT/bin/omarchy-remove-launcher-entry" aliens.desktop Aliens
 
@@ -83,7 +83,7 @@ mapfile -t lines <"$TEST_LOG"
 [[ ${lines[0]} == "web:false:Basecamp" ]] || fail "launcher remove routes web apps by desktop name" "${lines[0]}"
 pass "launcher remove routes web apps by desktop name"
 
-[[ ${lines[1]} == "tui:false:Docker" ]] || fail "launcher remove routes TUIs by desktop name" "${lines[1]}"
+[[ ${lines[1]} == "tui:false:Htop" ]] || fail "launcher remove routes TUIs by desktop name" "${lines[1]}"
 pass "launcher remove routes TUIs by desktop name"
 
 [[ ${lines[2]} == "terminal::echo Uninstalling Native...; sudo pacman -Rns native-pkg" ]] || fail "launcher remove opens package uninstall flow" "${lines[2]}"

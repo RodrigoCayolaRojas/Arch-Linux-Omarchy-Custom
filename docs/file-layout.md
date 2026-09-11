@@ -15,10 +15,10 @@ separate `omarchy-pkgs` repository, under `pkgbuilds/`):
   the omarchy package installs (specifically before `useradd -m` and the
   limine bootloader install): all `/etc/skel/**`, `/etc/` drop-ins,
   package-owned system files under `/usr/share` and `/usr/lib`, fonts,
-  plymouth theme, sddm theme, branding, plus the limine/snapper configs
-  (mkinitcpio hooks, limine-entry-tool drop-ins, snapper template, the
-  `default/limine/` and `default/snapper/` trees, and the boot/snapshot
-  story end-to-end). Also ships the three debug binaries
+  plymouth theme, sddm theme, branding, plus the limine boot template
+  (mkinitcpio hooks, limine-entry-tool drop-ins, snapper template, and the
+  `install/assets/limine/` template and `default/snapper/` tree, with the
+  boot/snapshot story end-to-end). Also ships the three debug binaries
   (`omarchy-debug`, `omarchy-debug-idle`, `omarchy-upload-log`) needed by
   the live ISO env.
 
@@ -95,18 +95,18 @@ applications/icons/*           ──►  omarchy-settings    /usr/share/icons/h
 
 etc/**                         ──►  omarchy-settings    /etc/**           (drop-ins we own outright)
   ├─ mkinitcpio.conf.d/{omarchy_hooks,thunderbolt_module}.conf
-  ├─ limine-entry-tool.d/{omarchy-defaults,omarchy-uki}.conf
+  ├─ limine-entry-tool.d/omarchy-uki.conf
   ├─ NetworkManager/, sudoers.d/, sysctl.d/, tmpfiles.d/,
   │  profile.d/omarchy.sh, …                            (a summary — `ls etc/` for the full ~17-entry tree)
   └─ security/faillock.conf, nsswitch.conf,
      cups/cups-browsed.conf, plymouth/plymouthd.conf    /usr/share/omarchy/etc-overrides/
                                                           → /etc/* (post_install cp -f, see below)
 
-default/limine/limine.conf     ──►  omarchy-settings    /usr/share/omarchy/default/limine/limine.conf
-default/limine/default.conf    ──►  omarchy-settings    /usr/share/omarchy/default/limine/default.conf
-                                                        (template; ISO substitutes @@CMDLINE@@ → /etc/default/limine)
+install/assets/limine/limine.conf
+                                 ──►  omarchy-settings    /usr/share/omarchy/install/assets/limine/limine.conf
+                                                         (Limine template; LUKS re-key reset_limine_config copies it)
 default/snapper/root           ──►  omarchy-settings    /etc/snapper/config-templates/omarchy
-                                                        (+ /usr/share/omarchy/default/snapper/root)
+                                                         (+ /usr/share/omarchy/default/snapper/root)
 
 default/**                     ──►  omarchy-settings    /usr/share/omarchy/default/
   ├─ bash/env-bootstrap                                 /usr/share/omarchy/default/bash/env-bootstrap
@@ -310,8 +310,8 @@ the legacy finalization marker from `~/.local/state/omarchy/` into `done/`.
 finalization. It sources:
 
 - `install/config/all.sh` — theme links, lockout limits, lockscreen PAM,
-  powerprofilesctl shebang fix, SSH command path and keepalive, docker setup,
-  Snapper retention, locate index tuning, service enablement, firewall.
+  powerprofilesctl shebang fix, SSH command path and keepalive, locate index
+  tuning, service enablement, firewall.
 - `install/hardware/all.sh` via `omarchy-apply-hardware` — vendor- and
   device-specific kernel modules, udev rules, microcode, wireless regdom,
   ASUS / Framework / Intel / Apple / Lenovo quirks.
@@ -338,7 +338,7 @@ brand-new user, so this one copy resyncs `.bashrc`, `.config/**`,
 `.local/share/applications/`, the nautilus-python extensions, hypr toggles,
 branding files, and the shipped migration markers in a single pass.
 
-Then it runs `omarchy-refresh-limine`, `omarchy-refresh-plymouth`, and the
+Then it runs `omarchy-refresh-plymouth` and the
 nvim refresh. Destructive: existing user files copied from `/etc/skel` are
 clobbered without backup. Fastfetch is package-owned at
 `/etc/fastfetch/config.jsonc`; delete `~/.config/fastfetch/config.jsonc` to

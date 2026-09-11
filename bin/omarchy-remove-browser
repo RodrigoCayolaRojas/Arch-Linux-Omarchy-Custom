@@ -12,10 +12,6 @@ set_fallback_default_browser() {
   if [[ $current_browser != $1 ]]; then
     return
   fi
-
-  if omarchy-cmd-present chromium; then
-    env -u BROWSER xdg-settings set default-web-browser chromium.desktop || true
-  fi
 }
 
 case $1 in

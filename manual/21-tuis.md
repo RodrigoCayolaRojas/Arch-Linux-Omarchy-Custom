@@ -8,14 +8,6 @@ You can run it directly, by going to any directory managed by git and running `l
 
 You hop between the different panes using `Tab`. In the Files pane, you select files for staging using `Space`, and then you can create a new commit using `c`. You can see all the commands available using `?`.
 
-## Lazydocker
-
-[Lazydocker](https://github.com/jesseduffield/lazydocker) is made in the same spirit like Lazygit, and also gives you a terminal interface for managing your containers and images.
-
-You can start it with `Super + Shift + D`.
-
-You stop a container using `s` or start/restart it using `r`. See all commands using `?`.
-
 ## Btop
 
 [Btop](https://github.com/aristocratos/btop) is a beautiful resource manager that shows memory, CPU, disk, and network usage. It also lists all active processes, and allows you to manage them.
@@ -37,10 +29,6 @@ Omarchy has packaged this as _About_ in the Omarchy menu (`Super + Space`).
 ## Disk Usage
 
 When the drive fills up and you have no idea what's eating it, launch _Disk Usage_ from the app launcher (`Super + Space`). It's [dua](https://github.com/Byron/dua-cli) in interactive mode pointed at the whole file system, so you can walk down into whatever directory is the culprit, sorted biggest first, and delete from right inside it.
-
-## Cliamp
-
-[Cliamp](https://www.cliamp.stream/) is a retro terminal music player inspired by Winamp 2.x, complete with built-in radio stations for lo-fi beats. Launch it with `Super + Shift + Alt + M`, or from the Omarchy menu under _Apps_. Press `?` for the full keybinding list.
 
 ## What about Wi-Fi and Bluetooth?
 

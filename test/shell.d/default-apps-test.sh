@@ -119,8 +119,6 @@ for installer in \
   ln -s omarchy-test-installer "$mock_bin/$installer"
 done
 for setup_command in \
-  omarchy-install-chromium-copy-url \
-  omarchy-install-chromium-ytdlp \
   omarchy-theme-set-browser; do
   ln -s omarchy-test-setup-call "$mock_bin/$setup_command"
 done
@@ -149,7 +147,6 @@ assert_missing_opens_installer() {
 }
 
 browser_cases=(
-  'chromium chromium browser:chromium'
   'chrome google-chrome-stable browser:chrome'
   'brave brave browser:brave'
   'brave-origin brave-origin browser:brave-origin'
@@ -202,33 +199,6 @@ pass "browser defaults install every missing browser before selection"
 
 : >"$install_log"
 : >"$setup_log"
-rm -f "$installed_dir/chromium"
-OMARCHY_TEST_REAL_BROWSER_INSTALL=true omarchy-default-browser --install chromium >/dev/null
-[[ $(<"$install_log") == "pkg:chromium" ]] || fail "Chromium browser installer installs the package"
-[[ $(omarchy-default-browser) == "chromium" ]] || fail "Chromium becomes the default after its full installer succeeds"
-cmp -s "$ROOT/config/chromium-flags.conf" "$test_home/.config/chromium-flags.conf" ||
-  fail "Chromium browser installer copies the default flags"
-grep -Fxq 'sudo:install -d -m 0755 -o root -g root /etc/chromium' "$setup_log" ||
-  fail "Chromium browser installer creates a root-owned Chromium policy parent"
-grep -Fxq 'sudo:install -d -m 0755 -o root -g root /etc/chromium/policies' "$setup_log" ||
-  fail "Chromium browser installer creates a root-owned Chromium policies parent"
-grep -Fxq 'sudo:install -d -m 0755 -o root -g root /etc/chromium/policies/managed' "$setup_log" ||
-  fail "Chromium browser installer creates a root-owned managed policy directory"
-grep -Fxq 'sudo:find /etc/chromium/policies/managed -mindepth 1 -maxdepth 1 ! -user root -exec rm -rf -- {} +' "$setup_log" ||
-  fail "Chromium browser installer drops non-root files from its policy directory"
-if grep -E 'groupadd|usermod|omarchy-browser-policy' "$setup_log" >/dev/null; then
-  fail "Chromium browser installer does not create a browser-policy group" "$(cat "$setup_log")"
-fi
-grep -Fxq 'omarchy-install-chromium-copy-url:' "$setup_log" ||
-  fail "Chromium browser installer registers the Copy URL host"
-grep -Fxq 'omarchy-install-chromium-ytdlp:' "$setup_log" ||
-  fail "Chromium browser installer registers the yt-dlp host"
-grep -Fxq 'omarchy-theme-set-browser:' "$setup_log" ||
-  fail "Chromium browser installer applies the current theme"
-pass "Chromium browser installer restores the complete Omarchy setup"
-
-: >"$install_log"
-: >"$setup_log"
 rm -f "$installed_dir/firefox"
 OMARCHY_TEST_REAL_BROWSER_INSTALL=true omarchy-default-browser --install firefox >/dev/null
 [[ $(<"$install_log") == "pkg:firefox" ]] || fail "Firefox browser installer installs the package"
@@ -258,23 +228,23 @@ grep -Fxq "sudo:install -m 644 -o root -g root -T $ROOT/default/firefox/policies
 pass "Zen browser installer restores the complete Omarchy setup"
 
 omarchy-default-browser zen
-rm -f "$installed_dir/chromium"
+rm -f "$installed_dir/firefox"
 if OMARCHY_TEST_REAL_BROWSER_INSTALL=true OMARCHY_TEST_INSTALL_FAIL=true \
-  omarchy-default-browser --install chromium >"$test_tmp/browser-package-failure" 2>&1; then
-  fail "failed Chromium package installation returns an error"
+  omarchy-default-browser --install firefox >"$test_tmp/browser-package-failure" 2>&1; then
+  fail "failed Firefox package installation returns an error"
 fi
-[[ $(omarchy-default-browser) == "zen" ]] || fail "failed Chromium package installation preserves the default browser"
-[[ ! -e $installed_dir/chromium ]] || fail "failed Chromium package installation does not mark it installed"
-pass "failed Chromium package installation preserves the current default"
+[[ $(omarchy-default-browser) == "zen" ]] || fail "failed Firefox package installation preserves the default browser"
+[[ ! -e $installed_dir/firefox ]] || fail "failed Firefox package installation does not mark it installed"
+pass "failed browser package installation preserves the current default"
 
 if OMARCHY_TEST_REAL_BROWSER_INSTALL=true OMARCHY_TEST_SETUP_FAIL=sudo \
-  omarchy-default-browser --install chromium >"$test_tmp/browser-install-failure" 2>&1; then
-  fail "failed Chromium setup returns an error"
+  omarchy-default-browser --install firefox >"$test_tmp/browser-install-failure" 2>&1; then
+  fail "failed Firefox setup returns an error"
 fi
-[[ $(omarchy-default-browser) == "zen" ]] || fail "failed Chromium setup preserves the default browser"
-grep -Fq 'Installing Chromium' "$test_tmp/browser-install-failure" ||
-  fail "failed Chromium setup keeps progress visible in the terminal"
-pass "failed Chromium setup preserves the current default"
+[[ $(omarchy-default-browser) == "zen" ]] || fail "failed Firefox setup preserves the default browser"
+grep -Fq 'Installing Firefox' "$test_tmp/browser-install-failure" ||
+  fail "failed Firefox setup keeps progress visible in the terminal"
+pass "failed browser setup preserves the current default"
 
 for entry in "${terminal_cases[@]}"; do
   read -r selection desktop_id <<<"$entry"

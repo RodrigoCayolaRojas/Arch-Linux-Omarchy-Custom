@@ -72,7 +72,7 @@ Remember that you have built-in brightness control in Omarchy for the Apple Disp
 
 ### How do I get rid of all the extra software?
 
-If you don't want programs like Obsidian or LibreOffice or any of the other preinstalled stuff, you can very easily remove it.
+If you don't want some of the preinstalled stuff, you can very easily remove it.
 
 Run _Remove > Package_ to see every package that's installed. Then you can select any package you'd like to remove with tab, and start removing everything you've selected with return.
 

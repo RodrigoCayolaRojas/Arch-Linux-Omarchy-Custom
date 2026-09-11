@@ -104,7 +104,6 @@ You can see all the main keyboard bindings with `Super + K` (Tmux bindings with 
 | `Super + Shift + F`           | File manager    |
 | `Super + Shift + Alt + F`           | File manager in cwd of terminal    |
 | `Super + Shift + M`           | Music (Spotify)    |
-| `Super + Shift + Alt + M`           | Music (cliamp)    |
 | `Super + Shift + /`           | Password manager (1password)    |
 | `Super + Shift + N`           | Editor (Neovim)  |
 | `Super + Shift + C`           | Calendar ([HEY](https://hey.com/))  |
@@ -117,9 +116,6 @@ You can see all the main keyboard bindings with `Super + K` (Tmux bindings with 
 | `Super + Shift + S`           | Google Maps  |
 | `Super + Shift + Alt + G`           | Messenger (WhatsApp)  |
 | `Super + Shift + Ctrl + G`           | Messenger (Google)  |
-| `Super + Shift + D`           | Docker (LazyDocker)  |
-| `Super + Shift + O`           | Obsidian  |
-| `Super + Shift + W`           | Writing (Omawrite)  |
 | `Super + Shift + X`           | X |
 | `Super + Shift + Alt + X`           | X Compose |
 | `Super + Shift + Y`           | YouTube |
@@ -335,40 +331,4 @@ Ghostty terminal is installed using _Install > Terminal_ via the Omarchy menu.
 
 ## Quick Emojis
 
-You can use `Super + Ctrl + E` to show a complete emoji picker that'll put the selection on the clipboard or you can use these quick access options.
-
-| Hotkey       | EM | Clue       |
-| ------------ | -- | ---------- |
-| `CapsLock M S` | 😄 | smile      |
-| `CapsLock M C` | 😂 | cry        |
-| `CapsLock M L` | 😍 | love       |
-| `CapsLock M V` | ✌️ | victory    |
-| `CapsLock M H` | ❤️ | heart      |
-| `CapsLock M Y` | 👍 | yes        |
-| `CapsLock M N` | 👎 | no         |
-| `CapsLock M F` | 🖕 | fuck       |
-| `CapsLock M W` | 🤞 | wish       |
-| `CapsLock M R` | 🤘 | rock       |
-| `CapsLock M K` | 😘 | kiss       |
-| `CapsLock M E` | 🙄 | eyeroll    |
-| `CapsLock M I` | 😉 | wink       |
-| `CapsLock M P` | 🙏 | pray |
-| `CapsLock M D` | 🤤 | drool      |
-| `CapsLock M M` | 💰 | money      |
-| `CapsLock M X` | 🎉 | xellebrate |
-| `CapsLock M 1` | 💯 | 100%       |
-| `CapsLock M T` | 🥂 | toast      |
-| `CapsLock M O` |👌 | ok |
-| `CapsLock M G` |👋 | greeting |
-| `CapsLock M A` |💪 | arm |
-| `CapsLock M B` |🤯 | blowing |
-
-## Quick Completions
-
-| Hotkey       | Completion       |
-| ------------ |  ---------- |
-| `CapsLock Space Space` | — (mdash)   |
-| `CapsLock Space N` | Your name (as entered on setup)  |
-| `CapsLock Space E` | Your email (as entered on setup)  |
-
-You can add more of your own by editing `~/.XCompose`, then running `omarchy-restart-xcompose` in the terminal to get the changes picked up.
+You can use `Super + Ctrl + E` to show a complete emoji picker that'll put the selection on the clipboard.

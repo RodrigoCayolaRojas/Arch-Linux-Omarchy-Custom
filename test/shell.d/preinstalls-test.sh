@@ -43,46 +43,22 @@ export PATH="$mock_bin:$ROOT/bin:$PATH"
 export HOME="$test_home"
 export OMARCHY_TEST_PKG_LOG="$pkg_log"
 
-# Both scripts restore and remove the same set, and every package in it has to be
-# one Omarchy actually ships, or Remove Preinstalls takes out an app the user
-# chose from the menu and Install Preinstalls puts back one we retired.
-mapfile -t shipped < <(sed -e 's/[[:space:]]*#.*$//' -e '/^[[:space:]]*$/d' "$ROOT/install/omarchy-base.packages")
-
+# Preinstalls now cover only launchers (web apps, TUIs, mise stubs), never a
+# package set: the Fujitsu profile ships no preinstalled desktop applications,
+# so both scripts run without touching omarchy-pkg-add/omarchy-pkg-drop.
 "$ROOT/bin/omarchy-install-preinstalls" >/dev/null
-mapfile -t restored <"$pkg_log"
+[[ ! -s $pkg_log ]] || fail "Install Preinstalls no longer installs packages"
+pass "Install Preinstalls restores launchers without installing packages"
 
 "$ROOT/bin/omarchy-remove-preinstalls" >/dev/null
-mapfile -t dropped <"$pkg_log"
+[[ ! -s $pkg_log ]] || fail "Remove Preinstalls no longer removes packages"
+pass "Remove Preinstalls removes launchers without touching packages"
 
-[[ ${restored[*]} == "${dropped[*]}" ]] ||
-  fail "Install and Remove Preinstalls cover the same packages" \
-    "restored: ${restored[*]}
-dropped:  ${dropped[*]}"
-pass "Install and Remove Preinstalls cover the same packages"
-
-for package in "${restored[@]}"; do
-  printf '%s\n' "${shipped[@]}" | grep -qxF "$package" ||
-    fail "every preinstall is shipped in omarchy-base.packages" "$package is not shipped"
-done
-pass "every preinstall is shipped in omarchy-base.packages"
-
-for package in omacut omacalc omawrite; do
-  printf '%s\n' "${restored[@]}" | grep -qxF "$package" ||
-    fail "preinstalls cover the Omacom apps" "$package is missing"
-done
-pass "preinstalls cover the Omacom apps"
-
-# The bindings key off the marker, so clearing it before the packages land would
-# point them at apps that never came back.
+# The bindings key off the marker, so it has to track what is actually installed.
 touch "$marker"
-OMARCHY_TEST_PKG_ADD_STATUS=1 "$ROOT/bin/omarchy-install-preinstalls" >/dev/null && status=0 || status=$?
-(( status == 1 )) || fail "restore reports a failed package transaction" "exit status was $status"
-[[ -f $marker ]] || fail "restore keeps the opt-out marker when packages fail to install"
-pass "restore keeps the opt-out marker when packages fail to install"
-
 "$ROOT/bin/omarchy-install-preinstalls" >/dev/null
-[[ ! -e $marker ]] || fail "restore clears the opt-out marker once the packages are back"
-pass "restore clears the opt-out marker once the packages are back"
+[[ ! -e $marker ]] || fail "restore clears the opt-out marker"
+pass "restore clears the opt-out marker"
 
 rm -f "$marker"
 OMARCHY_TEST_CONFIRM=1 "$ROOT/bin/omarchy-remove-preinstalls" >/dev/null

@@ -45,7 +45,7 @@ chmod +x "$stub_dir"/*
 export TEST_LOG="$stub_dir/firewall.log"
 PATH="$stub_dir:$PATH" bash -eE -c 'source "$1"' bash "$ROOT/install/config/firewall.sh"
 
-grep -q '^ufw-docker install$' "$TEST_LOG" || fail "ufw-docker rules are installed"
+! grep -q '^ufw-docker' "$TEST_LOG" || fail "firewall config no longer touches ufw-docker"
 grep -q '^systemctl enable ufw$' "$TEST_LOG" || fail "ufw is enabled for next boot"
 
-pass "firewall config installs ufw-docker rules without activating live UFW"
+pass "firewall config installs deny-by-default rules without activating live UFW"

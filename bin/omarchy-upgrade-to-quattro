@@ -1212,7 +1212,6 @@ run_post_upgrade_migrations() {
 run_final_system_package_upgrade() {
   log "Checking for remaining system package updates"
   as_root env OMARCHY_UPDATE_PACMAN=1 pacman -Syu --noconfirm --ask 4 \
-    --overwrite '/etc/docker/daemon.json' \
     --overwrite '/etc/gnupg/dirmngr.conf' \
     --overwrite '/etc/mkinitcpio.conf.d/omarchy_hooks.conf' \
     --overwrite '/etc/mkinitcpio.conf.d/thunderbolt_module.conf' \
@@ -1226,10 +1225,8 @@ run_final_system_package_upgrade() {
     --overwrite '/etc/sysctl.d/99-omarchy-sysctl.conf' \
     --overwrite '/etc/systemd/logind.conf.d/10-ignore-power-button.conf' \
     --overwrite '/etc/systemd/resolved.conf.d/10-disable-multicast.conf' \
-    --overwrite '/etc/systemd/resolved.conf.d/20-docker-dns.conf' \
     --overwrite '/etc/systemd/system.conf.d/10-faster-shutdown.conf' \
     --overwrite '/etc/systemd/system/user@.service.d/10-faster-shutdown.conf' \
-    --overwrite '/etc/systemd/system/docker.service.d/no-block-boot.conf' \
     --overwrite '/etc/systemd/system/plocate-updatedb.service.d/ac-only.conf' \
     --overwrite '/etc/systemd/system.conf.d/20-omarchy-nofile.conf' \
     --overwrite '/etc/systemd/user.conf.d/20-omarchy-nofile.conf' \
@@ -1273,10 +1270,7 @@ enable_system_service() {
 
 apply_firewall_defaults() {
   # Run the packaged config script rather than a copy of it, the same way
-  # configure_snapper_policy and configure_lock_authentication already do. The
-  # copy this replaces had drifted: it never installed the ufw-docker rules, so
-  # upgraded machines came up without the Docker firewall protections a fresh
-  # install gets.
+  # configure_snapper_policy and configure_lock_authentication already do.
   local firewall_script=/usr/share/omarchy/install/config/firewall.sh
 
   if ! command -v ufw >/dev/null 2>&1; then
@@ -1333,54 +1327,28 @@ apply_system_transition() {
     as_root env OMARCHY_PATH=/usr/share/omarchy \
       bash -euo pipefail -c '
         source "$OMARCHY_PATH/install/helpers/browser-policy.sh"
-        browser_policy_setup_dir /etc/chromium/policies/managed
         for dir in "${BROWSER_POLICY_MANAGED_DIRS[@]}"; do
-          [[ $dir == "/etc/chromium/policies/managed" ]] && continue
           [[ -d $dir || -L $dir ]] || continue
           browser_policy_setup_dir "$dir"
         done
       '
   fi
-  as_root install -d -m 0755 /usr/lib/chromium
-  printf '%s\n' '{"distribution":{"require_eula":false},"browser":{"theme":{"color_scheme":0,"color_scheme2":0}}}' | \
-    as_root tee /usr/lib/chromium/initial_preferences >/dev/null
-
-  # Deliberately do NOT add the user to the docker group. That group is
-  # root-equivalent, so it is opt-in now (Setup > Security > Sudoless Docker);
-  # re-granting it on upgrade would silently undo that default for everyone.
 
   if [[ -f /usr/bin/powerprofilesctl ]]; then
     as_root sed -i '/env python3/ c\#!/bin/python3' /usr/bin/powerprofilesctl || true
   fi
 
-  as_root install -d -m 0755 /etc/systemd/resolved.conf.d /etc/docker
+  as_root install -d -m 0755 /etc/systemd/resolved.conf.d
   cat <<'EOF' | as_root tee /etc/systemd/resolved.conf.d/10-disable-multicast.conf >/dev/null
 [Resolve]
 LLMNR=no
 MulticastDNS=no
 EOF
-  cat <<'EOF' | as_root tee /etc/systemd/resolved.conf.d/20-docker-dns.conf >/dev/null
-[Resolve]
-DNSStubListenerExtra=172.17.0.1
-EOF
-  cat <<'EOF' | as_root tee /etc/docker/daemon.json >/dev/null
-{
-    "log-driver": "json-file",
-    "log-opts": { "max-size": "10m", "max-file": "5" },
-    "dns": ["172.17.0.1"],
-    "bip": "172.17.0.1/16"
-}
-EOF
   as_root ln -sfn ../run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
-
-  # Fresh Omarchy socket-activates Docker. Disable the old always-on service if
-  # an upgraded install had enabled it, but do not stop running containers mid-upgrade.
-  as_root systemctl disable docker.service >/dev/null 2>&1 || true
 
   enable_system_service cups.service
   enable_system_service avahi-daemon.service
   enable_system_service linux-modules-cleanup.service
-  enable_system_service docker.socket
   enable_system_service systemd-resolved.service
   # NetworkManager replaces iwd, and both halves of that swap belong in one
   # step: a machine that boots with both enabled has two daemons fighting over
@@ -1503,12 +1471,6 @@ refresh	autostart/org.fcitx.Fcitx5.desktop	a0260e7f35579a73f77e257e9e3795abd8b33
 refresh	btop/btop.conf	e6b86ddda073e06bf64cfbbde9652f9335171d8ca8c622e617478a3c696a6a3d
 refresh	btop/btop.conf	7f4122f2ed5f4c95489950cce2c0b192e19ae6fa74b0666d25e0b10040b2cee8
 refresh	btop/btop.conf	4e17dd28c43948af48a408ed9b0901c008e57dfe3b8fcf09649ec10f28746137
-refresh	chromium/Default/Preferences	67aef8ae3a6e0ee1180057198f47f2ea412ea1f01051d77edce4c465fb83d887
-refresh	chromium-flags.conf	3a8fe5b85bc42b27f5a0f36f3b674dc8e22a7d670a6aabbdc4f2d4057b97a1d4
-refresh	chromium-flags.conf	3d52925a48ac3704f9427ecec70310d9c89be5442c41ece183122a9246837be4
-refresh	chromium-flags.conf	4bc8710615d2151464e9bd6d1123fbfbb8f56dea4cf0568320bc7b50d24ad205
-refresh	chromium-flags.conf	1df1a5282f9525bfbb97a697c8169c08c1adb2b5a4de5ae94d84df7b4a78f2fc
-refresh	chromium-flags.conf	0408c524892830f5cf43e94c389b897cbc093ede312f49a4627bfabf692653c2
 
 refresh	fcitx5/conf/clipboard.conf	2d53b40811ee7ceb71c7db0422a3ed733647f389379a57dbf2915d522dff4193
 refresh	fcitx5/conf/xcb.conf	f5cf059182c4361fa7b16d5149f20a09eb1e0915f4463ba60dae626b86df7d9c
@@ -1781,47 +1743,6 @@ copy_always_config_defaults() {
   done
 }
 
-repair_chromium_copy_url_extension_flags() {
-  local file
-  local -a flag_files=(
-    "$HOME/.config/chromium-flags.conf"
-    "$HOME/.config/chrome-flags.conf"
-    "$HOME/.config/google-chrome-flags.conf"
-    "$HOME/.config/google-chrome-stable-flags.conf"
-    "$HOME/.config/brave-flags.conf"
-    "$HOME/.config/brave-browser-flags.conf"
-    "$HOME/.config/brave-origin-beta-flags.conf"
-    "$HOME/.config/microsoft-edge-flags.conf"
-    "$HOME/.config/microsoft-edge-stable-flags.conf"
-    "$HOME/.config/opera-flags.conf"
-    "$HOME/.config/vivaldi-flags.conf"
-    "$HOME/.config/helium-flags.conf"
-  )
-
-  for file in "${flag_files[@]}"; do
-    [[ -f $file ]] || continue
-    grep -qF '.local/share/omarchy/default/chromium/extensions/copy-url' "$file" || continue
-
-    backup_config_file "$file"
-    python3 - "$file" <<'CHROMIUM_FLAGS_PATCH_PY'
-import sys
-from pathlib import Path
-
-path = Path(sys.argv[1])
-new_path = "/usr/share/omarchy/default/chromium/extensions/copy-url"
-legacy_paths = [
-    "~/.local/share/omarchy/default/chromium/extensions/copy-url",
-    "$HOME/.local/share/omarchy/default/chromium/extensions/copy-url",
-    str(Path.home() / ".local/share/omarchy/default/chromium/extensions/copy-url"),
-]
-text = path.read_text()
-for legacy_path in legacy_paths:
-    text = text.replace(legacy_path, new_path)
-path.write_text(text)
-CHROMIUM_FLAGS_PATCH_PY
-  done
-}
-
 repair_sleep_lock_unit_override() {
   local unit="$HOME/.config/systemd/user/omarchy-sleep-lock.service"
   local legacy_exec='ExecStart=%h/.local/share/omarchy/bin/omarchy-system-sleep-monitor'
@@ -1917,7 +1838,6 @@ refresh_known_config_defaults
 copy_missing_config_defaults "$root/config" "$HOME/.config"
 mark_removed_preinstalls_from_legacy_bindings
 copy_always_config_defaults
-repair_chromium_copy_url_extension_flags
 
 # Carry over user-added backgrounds from the legacy git checkout backup, then
 # remove old symlinks that pointed ~/.config/omarchy/themes/* back into the
@@ -2195,7 +2115,6 @@ if [[ -d $legacy_icons_dir ]]; then
     Cliamp.png \
     Discord.png \
     "Disk Usage.png" \
-    Docker.png \
     GitHub.png \
     "Google Contacts.png" \
     "Google Maps.png" \
@@ -2225,9 +2144,6 @@ if [[ -f $root/default/alacritty/Alacritty.desktop && ! -f $HOME/.local/share/ap
 fi
 if command -v update-desktop-database >/dev/null 2>&1; then
   update-desktop-database "$HOME/.local/share/applications" >/dev/null 2>&1 || true
-fi
-if command -v xdg-settings >/dev/null 2>&1; then
-  env -u BROWSER xdg-settings set default-web-browser chromium.desktop || true
 fi
 if command -v xdg-mime >/dev/null 2>&1; then
   xdg-mime default HEY.desktop x-scheme-handler/mailto || true
